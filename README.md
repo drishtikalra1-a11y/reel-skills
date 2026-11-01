@@ -45,3 +45,13 @@ Most editing skills need `ffmpeg`; several also need Node 22+, Python 3.10+ or `
 - https://github.com/alisadiq-ai/favstash-ai-video-editing-skills
 
 Each skill keeps its original license; see the LICENSE file inside each folder where present.
+
+## Load in every cloud session automatically
+In claude.ai/code open the cloud environment menu in the session title bar, choose Edit,
+and paste this under Setup script:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/drishtikalra1-a11y/reel-skills/main/setup-cloud.sh | bash
+```
+
+This needs the repository to be public, or added under Repositories in that same environment settings page.
