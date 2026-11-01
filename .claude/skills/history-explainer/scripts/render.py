@@ -179,13 +179,18 @@ def brand(img, b, W, H, lang):
     if not b:
         return
     d = ImageDraw.Draw(img, "RGBA")
+    # pick dark or light text from the brightness of the top strip
+    strip = img.crop((0, 0, W, int(H * 0.08))).convert("L").resize((16, 2))
+    light_bg = sum(strip.getdata()) / 32 > 150
+    series_col = (160, 100, 0) if light_bg else (250, 204, 21)
+    handle_col = (40, 32, 24, 220) if light_bg else (255, 255, 255, 200)
     if b.get("series"):
         f = font("title", int(H * 0.028), lang)
-        d.text((int(W * 0.03), int(H * 0.03)), b["series"], font=f, fill=(250, 204, 21))
+        d.text((int(W * 0.03), int(H * 0.03)), b["series"], font=f, fill=series_col)
     if b.get("handle"):
         f = font("body", int(H * 0.024), "latin")
         tw = d.textlength(b["handle"], font=f)
-        d.text((W - tw - int(W * 0.03), int(H * 0.03)), b["handle"], font=f, fill=(255, 255, 255, 200))
+        d.text((W - tw - int(W * 0.03), int(H * 0.03)), b["handle"], font=f, fill=handle_col)
 
 
 # ---------- scene renderers (each returns a PIL frame for local time t in seconds, duration dur) ----------
