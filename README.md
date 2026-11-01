@@ -1,7 +1,7 @@
 # reel-skills
 
 Claude Code skills for editing Instagram Reels, TikToks and YouTube Shorts.
-43 skills collected from sixteen open-source GitHub repositories, installed under `.claude/skills/`.
+51 skills: 50 collected from nineteen open-source GitHub repositories plus one custom skill, history-explainer, installed under `.claude/skills/`.
 
 ## Use in Claude Code cloud sessions
 Start a session from this repository. The skills load automatically.
@@ -30,6 +30,7 @@ Most editing skills need `ffmpeg`; several also need Node 22+, Python 3.10+ or `
 | Visual styles | favstash-adaptive-glass, favstash-paper-grid, favstash-breakout-card, favstash-motion-effects, favstash-product-motion-ads, favstash-text-over-footage |
 | Ideas and scripts | short-form-video, favstash-find-ideas, favstash-write-script, melvynx-studio-script, melvynx-outliers, melvynx-steal, melvynx-insta-audit |
 | Reference analysis | watch-video |
+| History explainers | **history-explainer** (custom: Study IQ style, real archival images, Ken Burns, maps, timelines, Hindi lower-thirds), vox-explainer, explainer-video, data-story, video-explainer, reference-to-motion, animated-chart, reel-export |
 | Added later | vertical-video-editing (style presets, b-roll, transitions), talking-head-reel, reel-studio (AI B-roll + Remotion captions), ultimate-video-editor (colour grading, animated captions), app-promo-reel and product-film (beat-synced cuts), remotion-motion-graphics |
 | Motion graphics | motion-director, motionmaxxing, cinetic, melvynx-vox |
 | Studio and publishing | melvynx-studio-setup, melvynx-editing, melvynx-broll, melvynx-short-translate, melvynx-publish, favstash-publish-and-analyze |
@@ -51,6 +52,9 @@ Most editing skills need `ffmpeg`; several also need Node 22+, Python 3.10+ or `
 - https://github.com/hamen/app-promo-reel
 - https://github.com/Rieranthony/product-film-skill
 - https://github.com/haidrrrry/claude-remotion-skill
+- https://github.com/charlie947/motion-graphics-skills
+- https://github.com/Neelshah1810/Claude-Video-Skills
+- https://github.com/runesleo/claude-video-kit
 
 Each skill keeps its original license; see the LICENSE file inside each folder where present.
 
