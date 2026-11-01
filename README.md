@@ -1,7 +1,7 @@
 # reel-skills
 
 Claude Code skills for editing Instagram Reels, TikToks and YouTube Shorts.
-51 skills: 50 collected from nineteen open-source GitHub repositories plus one custom skill, history-explainer, installed under `.claude/skills/`.
+52 skills: 50 collected from nineteen open-source GitHub repositories plus two custom skills, history-explainer and upsc-trend-brief, installed under `.claude/skills/`.
 
 ## Use in Claude Code cloud sessions
 Start a session from this repository. The skills load automatically.
