@@ -1,0 +1,120 @@
+# Motion language
+
+A reel feels precise when each kind of object always moves the same way. If every element
+overshoots, nothing feels precise. The classes live in `<project>/motion.js` (copied from
+`template/motion.js` by `new_project.py`, built into the page by the `{{MOTION}}` token). Edit
+the values there, not in the timeline.
+
+| Class | Used for | Ease | Duration |
+|---|---|---|---|
+| `micro` | small in-place responses (a button squash, a toggle) | spring, 6% overshoot | 0.18 s |
+| `panel` | big surfaces: the phone, the hero chip, a card | spring, 7% overshoot | 0.55 s |
+| `headline` | captions and taglines | spring, 13% overshoot | 0.35 s, then hold 1.0 s |
+| `icon` | small objects that appear: icon, pop, CTA, chips, rows | spring, 10% overshoot | 0.32 s |
+| `camera` | drift and push-in of a whole scene | `sine.inOut` (drift), `power2.inOut` (move) | set by the scene |
+
+Why these values: a big object that bounces a lot looks cheap, so `panel` is nearly flat. A
+small object can bounce a little more (`icon`). A headline needs a clear landing, then
+a hold so it can be read: the words stay put while something else moves
+(`references/storyboard.md`, "Density"). The camera never uses a spring: a spring on the camera reads as a
+shake.
+
+## Rules
+- Use the class ease: `ease: MOTION.panel.ease`. A tween keeps its own `duration` and start
+  time; the template overrides some class durations on purpose (`#phone` is 0.7 s). The class
+  fixes the feel, the scene fixes the timing.
+- An object that **enters** uses its entrance class (`icon` for a pop, `panel` for a screen).
+  An object that **responds in place** uses `micro`.
+- `shake` and `flash` are the loudest effects: at most 2 shakes and 2 flashes per reel, best on the
+  drop and the end card (the template has one of each in s3 and in s6). Give the other beats a
+  `punch`. `build.py` prints a warning when the page calls either more than 2 times.
+- At most one class overshoots hard at a time. When a `headline` and an `icon` land on the
+  same beat, give the beat to one and delay or soften the other.
+- Do not use `back.out(...)` in a scene. If an element truly needs it, put a
+  `// motion-exception: <reason>` comment on that line.
+- A spring is trimmed so it starts at 0 and ends at exactly 1: the tween always lands on its
+  target. The overshoot argument must be between 0 and 0.35; `spring(0)` is a critically
+  damped ease with no overshoot.
+- The 16:9 hero loop uses no spring. It must start and end at rest (`references/hero.md`).
+
+## Ranges
+- An entrance takes 0.3-0.6 s. An exit takes 0.2-0.3 s.
+- A stagger that is not on the beat grid puts 60-120 ms between items (20-40 ms between letters).
+
+The template's entrance classes (`headline` 0.35 s, `icon` 0.32 s, `panel` 0.55 s) and its scene exits
+(0.2-0.3 s) are inside. Two moves are outside on purpose: the `slam` helper (0.2 s: `#feat-title`,
+`#ben-line`, `#val-a`, `#val-b`) and `#phone` (0.7 s). `micro` (0.18 s) is a response in place, not an
+entrance, and the template timeline does not use it. Some template moves keep their own ease instead
+of the class ease, for example the end-card `#icon` (`power4.in`: at full speed on the hit, with the
+shake and the flash) and the slams, the benefit whips and the store badges (`expo.out`).
+
+The template does not keep to calm ranges of distance, scale and rotation (a short travel, a scale
+from just under 1, a small turn). Its loud moves are deliberate: the captions drop 220 px, the
+benefits whip in from 900 px, the pops grow from scale 0, the slams shrink from scale 2-3.6, and the
+end icon turns 20°. The rules above limit them: at most 2 shakes and 2 flashes per reel, and one hard
+overshoot at a time.
+
+## Moving holds
+For a reel that shows the app's own illustrations or mascot. A drawing that stops dead on a hold
+looks like a slideshow; a drawing with a small idle layer looks alive.
+- Only the app's real art moves: a character, a plant or an icon from its screens or its store
+  assets. Never add a pose, an expression or an action the art does not have (truthfulness rule 4
+  of SKILL.md). Text never gets an idle layer: the words stay put.
+- While the drawing is on screen, give it an idle layer: a breath (scale 1 to 1.015), a float
+  (y ±6 px at 1080 px wide) or a sway (rotation ±1.5° around its real pivot, with
+  `transformOrigin`: the base of a plant, the neck of a head). Bigger reads as a wobble.
+- Give each part its own period, a whole number of beats (2, 4 or 8), so the parts never move in
+  step like a machine. Use `sine.inOut` with `yoyo: true`.
+- A trailing part (an ear, a tail, a leaf) repeats the move of its parent 0.08-0.15 s later.
+- An entrance or an action on top of the idle layer keeps its own class ease; the idle layer
+  goes on under it. A hold is a pose with the idle layer on, not a stop.
+- Put the idle tweens on the scene's GSAP timeline, with a finite `repeat` that ends with the
+  scene. With `repeat: -1`, GSAP 3.14.2 gives the
+  timeline a duration of 10^10 s. A CSS animation is not on the timeline.
+- `finish.py` measures the whole frame: a small breath on a small drawing can still give a
+  `still for` warning. The critique decides.
+
+The rules follow [rossark-motion-skill](https://github.com/rossark0/rossark-motion-skill) by
+rossark0 (MIT). No code is copied.
+
+## Seekable frames
+A frame must depend only on the time `t`: `frame = render(t)`. Then a seek, a re-render and a
+snapshot all show the same picture. `build.py` fails (exit 2) when an inline script of the page
+uses a hidden clock or a random value: `Math.random`, `Date.now`, `Date(` / `new Date`,
+`performance.now`, `setTimeout`, `setInterval`, `requestAnimationFrame`,
+`crypto.getRandomValues`, `crypto.randomUUID` (also with `?.`). JavaScript comments, strings and
+template text are not read. A `<script>` inside an HTML comment is still read: delete it instead of
+commenting it out. Scripts with a `src` and inline event-handler attributes are not read. The check is
+a guard, not a proof: it reads names as written, so a name held in another variable
+(`const M = Math; M.random()`), bracket access (`Math["random"]()`) or a script it does not read can
+still make two renders differ.
+
+If you need variation, write it as a constant (a seeded list in the file), or derive it from
+`t` with `Math.sin`. Check a built page again with `build.py <project>`.
+
+## Motion blur
+Optional, for 9:16 and 4:5 reels with fast moves: render at 240 fps and let `scripts/blur.py` make
+the project-fps video (commands in `references/pipeline.md`, step 5). It costs about 2.5 minutes for
+a 30 s reel instead of about 25 s. Not at 23.976, 29.97 or 59.94 fps (`references/pipeline.md`, step 5).
+- Each output frame averages the input frames within a third of a frame of its time: 5 of 8 at
+  30 fps (about 225° of shutter), 3 of 4 at 60 fps. The window is centred on the frame time.
+- No blur across a cut. A step between two input frames (the mean change of gray level) is a cut
+  when it is more than 1 gray level and more than 2.5 times the median of the steps around it (two
+  on each side, fewer at the ends of the clip). The frame keeps only the side of its own time. That
+  catches hard cuts, slams on a frame time, and the in and out steps of a one-frame flash (that
+  frame gets less blur). An instant change in the gap between two windows (more than a third of a
+  frame from both frame times) is in no window and needs no cut. A change inside a window that is
+  too small for the cut rule blends on that one frame. A cut under a fast move can be too small too:
+  the frame shows a ghost of the old scene, and blur.py names that frame on its `fastest:` line.
+- Copies: the samples of a frame sit one input frame apart. A move faster than about 10 × K px per
+  output frame (K input frames per output frame: 80 px at 30 fps, 40 px at 60 fps) shows separate
+  copies instead of a smear. The stock s2 exit whip moves about 210 px per frame and shows 5 copies.
+  The `fastest:` line of blur.py names the frames to look at: the frames with the most local change,
+  one per move. A fade or a flash ranks high too.
+- Counters and typed text: a change at a frame time falls inside that frame's window, and the frame
+  blends the old and the new glyphs (a digit change is too small for the cut rule). With blur, put
+  each change of a counter or typed text at a half-frame time, `(n + 0.5) / fps`: no window holds
+  those input frames. Beat times are not frame times: move each change to the nearest half-frame
+  time.
+- Motion blur is not CSS `filter: blur()` and does not replace one: the entrance blurs of the
+  template stay.

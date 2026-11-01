@@ -1,0 +1,84 @@
+# HyperFrames 0.8.78 — lessons from real runs
+
+Pin the version: `npx --yes hyperframes@0.8.78 …` (the project's package.json uses the same).
+
+## Timeline
+- The page registers `window.__timelines["main"] = tl` on a paused GSAP timeline; the root has
+  `data-composition-id="main"`, `data-start="0"`, `data-duration` = project duration and
+  `data-fps` = project fps (`{{FPS}}`).
+- `render` takes the frame rate from `--fps`, else from the root's `data-fps`, else 30. It reads a
+  whole number or a fraction (`30000/1001`) there. A decimal `data-fps` such as `29.97` is ignored
+  with no message, and the render runs at 30 (measured).
+- Every scene is a `<section class="clip" data-start data-duration data-track-index>`. Its
+  times come from beat tokens. Overlap neighbours by ~0.1-0.3 s for the transition.
+- **Every `fromTo` whose from-state is visible needs `immediateRender: false`** — shakes,
+  punches, flashes, glow pulses, button squashes and **tap rings**. Without it the from-state
+  is painted at t=0 (a tap ring showed in frame one).
+- A property in the from-vars but not in the to-vars animates BACK to its CSS value. Put it in
+  both (a slide-in screen with `opacity: 1` only in the from-state stayed invisible).
+- A tween `ease` can be a plain function of progress. HyperFrames 0.8.78 accepts it: `check`
+  reports 0 errors, snapshots repeat exactly and two draft renders gave identical frame hashes in
+  that run (a render does not always repeat exactly: see below). The springs in `motion.js` rely on
+  this (`references/motion.md`).
+- `build.py` fails when an inline script uses `Math.random`, `Date.now`, a timer or
+  `requestAnimationFrame`: a frame must depend only on `t`, or two renders differ.
+- Hide an element after it leaves with a short `tl.to(…, {opacity: 0, duration: 0.02})`, not
+  `tl.set`; the earlier reels used this pattern for every visibility change.
+- A script in the rendered page must never seek the timeline. GSAP then writes start values (for
+  example `filter: blur(0px)`) as inline styles, and the render changes (measured: 765 of 900 frames).
+- At load the runtime has not yet positioned the scenes (they stack down the page) and hides the root
+  and the scenes until its first seek: measure a box against its own scene, and read `textContent`
+  (`innerText` is empty for hidden text).
+- `read_check.py` adds its measuring pass to a copy of index.html in a temporary folder, after
+  build.py's AI-label script, and runs `check` there.
+- Never tween the composition root, `body` or `html` (a fade of the whole reel, a zoom of the root):
+  the AI label sits in the root, and build.py's guard fails the check. For a fade to black, fade in a
+  full-frame black layer inside the root; the label stays above every layer.
+- The guard checks the page at load and again after `document.fonts.ready`. It does not see a
+  callback (`tl.call`, `onUpdate`) or another script that writes styles during playback, or a
+  timeline built later than the first-level `fonts.ready` callbacks (a promise chain or an `await`
+  inside the page's `fonts.ready` callback, a fetch, a timer): never hide or move the label's
+  ancestors that way. It sees a CSS transition only while it runs; any running CSS animation or
+  transition on the label, the root, `body` or `html` fails the check, even one that would not hide
+  the label.
+- `hyperframes render` does not stop on a `page_error`: it logs `[Browser:PAGEERROR]` and writes the
+  MP4 (measured). The check is the gate.
+
+## Look
+- Between two phone screens use a **slide, not a crossfade**: a crossfade shows both screens
+  at half opacity (double exposure).
+- Fade out screens that slide away, or their edge shows at the next scene start.
+- Full-screen **linear** gradients band in the H.264 output: use radial gradients.
+- Contrast: `check` measures text on its real background. Bright radial centres and flash
+  peaks fail it — darken chip text, darken the centre colour, lower the flash peak (≤ 0.6).
+- Images on a flat coloured background need real alpha. A flood-fill to cut out an icon leaks
+  into light areas of the icon: put the full icon on a rounded tile instead.
+
+## Files
+- The source is `src.html.tmpl`, never a `.html` file: HyperFrames opens every `.html` in the
+  folder. build.py writes `index.html`.
+- Fonts: a local `.woff2` in `assets/fonts/` with an `@font-face`. No web font CDNs.
+- Audio: `<audio>` with `data-start`, `data-duration`, `data-track-index` (music 20, SFX 21+),
+  `data-volume`. build.py allocates SFX tracks so two sounds never share a track at once.
+
+## Check, snapshot, render
+- `check` must end with 0 errors. Expected and safe to keep: 7 lint warnings
+  (`composition_file_too_large`, `nested_structure_needs_subcomposition` for each scene — the
+  single-file template is deliberate) and "info" items at transition times (overlap, overflow
+  of an element that is sliding out).
+- `snapshot --at t1,t2,… --describe false --no-end -o snapshots/rN` — always a new folder per
+  round (the shell may refuse a recursive delete of old snapshots).
+- Verify on frames from the **final MP4** (finish.py contact sheet), not only on snapshots.
+- `render -o renders/raw.mp4 -q delivery --quiet`. Then finish.py.
+- Motion blur: `render -o renders/sub240.mp4 -q delivery --fps 240 --quiet`, then `scripts/blur.py`
+  writes `renders/raw.mp4` (`references/pipeline.md`, step 5).
+- Two renders of one page are not always identical (measured). To compare two builds frame by
+  frame, render each side more than once and compare the sets.
+
+## Off-page text and the contrast check
+`hyperframes check` measures the text of a clipped, off-page element (a screen parked at
+`x: 760` inside an `overflow: hidden` frame) against the page behind it, and the contrast gate
+fails. Keep an element that waits off the page at `opacity: 0` (`gsap.set(el, {x: 760, opacity: 0})`),
+and fade it to 0 again right after it slides out (`tl.to(el, {opacity: 0, duration: 0.02}, t)`).
+Keep backup copies of `index.html` outside the project folder: a second root composition makes
+`check` report `multiple_root_compositions` and a bogus "0/0" contrast result.

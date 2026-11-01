@@ -1,7 +1,7 @@
 # reel-skills
 
 Claude Code skills for editing Instagram Reels, TikToks and YouTube Shorts.
-36 skills collected from nine open-source GitHub repositories, installed under `.claude/skills/`.
+43 skills collected from sixteen open-source GitHub repositories, installed under `.claude/skills/`.
 
 ## Use in Claude Code cloud sessions
 Start a session from this repository. The skills load automatically.
@@ -30,6 +30,7 @@ Most editing skills need `ffmpeg`; several also need Node 22+, Python 3.10+ or `
 | Visual styles | favstash-adaptive-glass, favstash-paper-grid, favstash-breakout-card, favstash-motion-effects, favstash-product-motion-ads, favstash-text-over-footage |
 | Ideas and scripts | short-form-video, favstash-find-ideas, favstash-write-script, melvynx-studio-script, melvynx-outliers, melvynx-steal, melvynx-insta-audit |
 | Reference analysis | watch-video |
+| Added later | vertical-video-editing (style presets, b-roll, transitions), talking-head-reel, reel-studio (AI B-roll + Remotion captions), ultimate-video-editor (colour grading, animated captions), app-promo-reel and product-film (beat-synced cuts), remotion-motion-graphics |
 | Motion graphics | motion-director, motionmaxxing, cinetic, melvynx-vox |
 | Studio and publishing | melvynx-studio-setup, melvynx-editing, melvynx-broll, melvynx-short-translate, melvynx-publish, favstash-publish-and-analyze |
 
@@ -43,6 +44,13 @@ Most editing skills need `ffmpeg`; several also need Node 22+, Python 3.10+ or `
 - https://github.com/iart-ai/tiktok-video-skills
 - https://github.com/Melvynx/video-agent-skills
 - https://github.com/alisadiq-ai/favstash-ai-video-editing-skills
+- https://github.com/nopefallacy/vertical-video-editing-skills
+- https://github.com/mariagorskikh/talking-head-reel
+- https://github.com/harper-carroll/reel-studio-skill
+- https://github.com/Rajbharti06/Ultimate-Video-Editing-Skills
+- https://github.com/hamen/app-promo-reel
+- https://github.com/Rieranthony/product-film-skill
+- https://github.com/haidrrrry/claude-remotion-skill
 
 Each skill keeps its original license; see the LICENSE file inside each folder where present.
 
